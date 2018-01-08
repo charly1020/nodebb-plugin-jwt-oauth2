@@ -1,13 +1,12 @@
-# NodeBB OAuth SSO
+This is a fork from https://github.com/julianlam/nodebb-plugin-sso-oauth
 
-NodeBB Plugin that allows users to login/register via any configured OAuth provider. **Please note** that this is not a complete plugin, but merely a skeleton with which you can create your own OAuth SSO plugin for NodeBB (and hopefully share it with others!)
+# Difference from nodebb-plugin-sso-oauth
+All settings are being set in a config file (`nodebb/sso-config.json`). It also parses the id from the jwt token (field name needs to be set in `sso-config.json`), so unless you're using jwt you need to update the behaviour of the `OAuth.getUidFromToken` in `library.js:230`.
 
 ## How to Adapt
 
-1. Fork this plugin
-    * ![](http://i.imgur.com/APWHJsa.png)
-1. Add the OAuth credentials (around line 30 of `library.js`)
-1. Update profile information (around line 137 of `library.js`) with information from the user API call
+1. Copy the sample `sso-config-sample.json` into `nodebb/sso-config.json`.
+1. Update `sso-config.json` accordingly.
 1. Activate this plugin from the plugins page
 1. Restart your NodeBB
 1. Let NodeBB take care of the rest

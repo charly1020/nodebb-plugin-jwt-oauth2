@@ -14,9 +14,9 @@
 				a format accepted by NodeBB. Instructions are provided there. (Line 146)
 
 		Step 4: If all goes well, you'll be able to login/register via your OAuth endpoint credentials.
-	*/
+		*/
 
-	var User = module.parent.require('./user'),
+		var User = module.parent.require('./user'),
 		Groups = module.parent.require('./groups'),
 		meta = module.parent.require('./meta'),
 		db = module.parent.require('../src/database'),
@@ -25,65 +25,32 @@
 		path = module.parent.require('path'),
 		nconf = module.parent.require('nconf'),
 		winston = module.parent.require('winston'),
+		ssoConfig = module.parent.require('../sso-config'),
 		async = module.parent.require('async');
 
-	var authenticationController = module.parent.require('./controllers/authentication');
+		var authenticationController = module.parent.require('./controllers/authentication');
 
-	/**
-	 * REMEMBER
-	 *   Never save your OAuth Key/Secret or OAuth2 ID/Secret pair in code! It could be published and leaked accidentally.
-	 *   Save it into your config.json file instead:
-	 *
-	 *   {
-	 *     ...
-	 *     "oauth": {
-	 *       "id": "someoauthid",
-	 *       "secret": "youroauthsecret"
-	 *     }
-	 *     ...
-	 *   }
-	 *
-	 *   ... or use environment variables instead:
-	 *
-	 *   `OAUTH__ID=someoauthid OAUTH__SECRET=youroauthsecret node app.js`
-	 */
+		var constants = Object.freeze(ssoConfig.constants);
+		var configOk = false;
+		var OAuth = {};
+		var passportOAuth;
+		var opts;
 
-	var constants = Object.freeze({
-			type: '',	// Either 'oauth' or 'oauth2'
-			name: '',	// Something unique to your OAuth provider in lowercase, like "github", or "nodebb"
-			oauth: {
-				requestTokenURL: '',
-				accessTokenURL: '',
-				userAuthorizationURL: '',
-				consumerKey: nconf.get('oauth:key'),	// don't change this line
-				consumerSecret: nconf.get('oauth:secret'),	// don't change this line
-			},
-			oauth2: {
-				authorizationURL: '',
-				tokenURL: '',
-				clientID: nconf.get('oauth:id'),	// don't change this line
-				clientSecret: nconf.get('oauth:secret'),	// don't change this line
-			},
-			userRoute: ''	// This is the address to your app's "user profile" API endpoint (expects JSON)
-		}),
-		configOk = false,
-		OAuth = {}, passportOAuth, opts;
+		if (!constants.name) {
+			winston.error('[sso-oauth] Please specify a name for your OAuth provider (library.js:32)');
+		} else if (!constants.type || (constants.type !== 'oauth' && constants.type !== 'oauth2')) {
+			winston.error('[sso-oauth] Please specify an OAuth strategy to utilise (library.js:31)');
+		} else if (!constants.userRoute) {
+			winston.error('[sso-oauth] User Route required (library.js:31)');
+		} else {
+			configOk = true;
+		}
 
-	if (!constants.name) {
-		winston.error('[sso-oauth] Please specify a name for your OAuth provider (library.js:32)');
-	} else if (!constants.type || (constants.type !== 'oauth' && constants.type !== 'oauth2')) {
-		winston.error('[sso-oauth] Please specify an OAuth strategy to utilise (library.js:31)');
-	} else if (!constants.userRoute) {
-		winston.error('[sso-oauth] User Route required (library.js:31)');
-	} else {
-		configOk = true;
-	}
+		OAuth.getStrategy = function(strategies, callback) {
+			if (configOk) {
+				passportOAuth = require('passport-oauth')[constants.type === 'oauth' ? 'OAuthStrategy' : 'OAuth2Strategy'];
 
-	OAuth.getStrategy = function(strategies, callback) {
-		if (configOk) {
-			passportOAuth = require('passport-oauth')[constants.type === 'oauth' ? 'OAuthStrategy' : 'OAuth2Strategy'];
-
-			if (constants.type === 'oauth') {
+				if (constants.type === 'oauth') {
 				// OAuth options
 				opts = constants.oauth;
 				opts.callbackURL = nconf.get('url') + '/auth/' + constants.name + '/callback';
@@ -111,7 +78,8 @@
 				opts.callbackURL = nconf.get('url') + '/auth/' + constants.name + '/callback';
 
 				passportOAuth.Strategy.prototype.userProfile = function(accessToken, done) {
-					this._oauth2.get(constants.userRoute, accessToken, function(err, body, res) {
+					const uid = OAuth.getUidFromToken(accessToken);
+					this._oauth2.get(constants.userRoute+uid, accessToken, function(err, body, res) {
 						if (err) { return done(new InternalOAuthError('failed to fetch user profile', err)); }
 
 						try {
@@ -136,7 +104,8 @@
 					oAuthid: profile.id,
 					handle: profile.displayName,
 					email: profile.emails[0].value,
-					isAdmin: profile.isAdmin
+					isAdmin: profile.isAdmin,
+					token: token,
 				}, function(err, user) {
 					if (err) {
 						return done(err);
@@ -169,22 +138,32 @@
 		// Find out what is available by uncommenting this line:
 		// console.log(data);
 
-		var profile = {};
-		profile.id = data.id;
-		profile.displayName = data.name;
-		profile.emails = [{ value: data.email }];
+		var profileKeys = Object.keys(ssoConfig.profile);
+		var profile = profileKeys.reduce(function(acc, key, i) {
+			var keyValue = ssoConfig.profile[key];
+
+			if(key === 'emails') {
+				acc[key] = [{ value: data[keyValue] }];
+				return acc;
+			}
+
+			acc[key] = data[keyValue];
+			return acc;
+		}, {});
+
 
 		// Do you want to automatically make somebody an admin? This line might help you do that...
-		// profile.isAdmin = data.isAdmin ? true : false;
+		profile.isAdmin = false;
 
 		// Delete or comment out the next TWO (2) lines when you are ready to proceed
-		process.stdout.write('===\nAt this point, you\'ll need to customise the above section to id, displayName, and emails into the "profile" object.\n===');
-		return callback(new Error('Congrats! So far so good -- please see server log for details'));
+		// process.stdout.write('===\nAt this point, you\'ll need to customise the above section to id, displayName, and emails into the "profile" object.\n===');
+		// return callback(new Error('Congrats! So far so good -- please see server log for details'));
 
 		callback(null, profile);
 	}
 
 	OAuth.login = function(payload, callback) {
+
 		OAuth.getUidByOAuthid(payload.oAuthid, function(err, uid) {
 			if(err) {
 				return callback(err);
@@ -248,20 +227,39 @@
 		});
 	};
 
+	OAuth.getUidFromToken = function(token) {
+		const parts = token.split('.');
+		const buffer = Buffer.from(parts[1], 'base64');
+		const data = JSON.parse(buffer);
+		return data.ssoConfig.tokenIdField;
+	}
+
 	OAuth.deleteUserData = function(data, callback) {
 		async.waterfall([
 			async.apply(User.getUserField, data.uid, constants.name + 'Id'),
 			function(oAuthIdToDelete, next) {
 				db.deleteObjectField(constants.name + 'Id:uid', oAuthIdToDelete, next);
 			}
-		], function(err) {
-			if (err) {
-				winston.error('[sso-oauth] Could not remove OAuthId data for uid ' + data.uid + '. Error: ' + err);
-				return callback(err);
-			}
+			], function(err) {
+				if (err) {
+					winston.error('[sso-oauth] Could not remove OAuthId data for uid ' + data.uid + '. Error: ' + err);
+					return callback(err);
+				}
 
-			callback(null, data);
+				callback(null, data);
+			});
+	};
+
+	OAuth.init = function (data, callback) {
+		var loginUrl = ssoConfig.loginUrl;
+		var registerUrl = ssoConfig.registerUrl;
+		loginUrl && data.router.get('/login', function (req, res) {
+			res.redirect(loginUrl);
 		});
+		registerUrl && data.router.get('/register', function (req, res) {
+			res.redirect(registerUrl);
+		});
+		callback(null, data);
 	};
 
 	module.exports = OAuth;

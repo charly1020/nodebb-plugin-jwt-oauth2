@@ -1,0 +1,29 @@
+{
+    "constants": {
+        "type": "oauth OR oauth2",
+        "name": "",
+        "oauth": {
+            "requestTokenURL": "",
+            "accessTokenURL": "",
+            "userAuthorizationURL": "",
+            "consumerKey": "",
+            "consumerSecret": ""
+        },
+        "oauth2": {
+            "authorizationURL": "",
+            "tokenURL": "",
+            "clientID": "",
+            "clientSecret": ""
+        },
+        "userRoute": "", 
+        "scope":"read:user"
+    },
+    "profile": {
+        "id": "",
+        "displayName": "",
+        "emails": ""
+    },
+    "loginUrl": "",
+    "registerUrl": "",
+    "tokenIdField": ""
+}
