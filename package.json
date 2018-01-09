@@ -1,6 +1,6 @@
 {
   "name": "nodebb-plugin-jwt-oauth2",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "NodeBB Plugin for OAuth2 with jwt tokens.",
   "main": "library.js",
   "repository": {
