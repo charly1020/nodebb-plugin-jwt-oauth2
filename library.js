@@ -231,7 +231,7 @@
 		const parts = token.split('.');
 		const buffer = Buffer.from(parts[1], 'base64');
 		const data = JSON.parse(buffer);
-		return data.ssoConfig.tokenIdField;
+		return data[ssoConfig.tokenIdField];
 	}
 
 	OAuth.deleteUserData = function(data, callback) {
