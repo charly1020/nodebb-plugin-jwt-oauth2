@@ -1,8 +1,8 @@
 {
-	"id": "nodebb-plugin-sso-oauth",
-	"name": "NodeBB OAuth SSO",
+    "id": "nodebb-plugin-jwt-oauth2",
+    "name": "NodeBB Plugin for OAuth2 with jwt tokens.",
 	"description": "NodeBB Plugin that allows users to login/register via any configured OAuth provider.",
-	"url": "https://github.com/julianlam/nodebb-plugin-sso-oauth",
+    "url": "https://github.com/TimeZynk/nodebb-plugin-jwt-oauth2",
 	"library": "./library.js",
 	"hooks": [
 		{ "hook": "static:user.delete", "method": "deleteUserData" },

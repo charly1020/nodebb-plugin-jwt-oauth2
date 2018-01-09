@@ -1,11 +1,11 @@
 {
-  "name": "nodebb-plugin-sso-oauth",
+  "name": "nodebb-plugin-jwt-oauth2",
   "version": "0.3.3",
-  "description": "NodeBB Generic OAuth SSO",
+  "description": "NodeBB Plugin for OAuth2 with jwt tokens.",
   "main": "library.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/julianlam/nodebb-plugin-sso-oauth"
+    "url": "https://github.com/TimeZynk/nodebb-plugin-jwt-oauth2"
   },
   "keywords": [
     "nodebb",
@@ -18,12 +18,12 @@
     "registration"
   ],
   "author": {
-    "name": "Julian Lam",
-    "email": "julian@nodebb.org"
+    "name": "TimeZynk dev",
+    "email": "info@timezynk.com"
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/julianlam/nodebb-plugin-sso-oauth/issues"
+    "url": "https://github.com/TimeZynk/nodebb-plugin-jwt-oauth2/issues"
   },
   "readme": "",
   "readmeFilename": "README.md",
@@ -31,7 +31,7 @@
     "passport-oauth": "~1.0.0"
   },
   "nbbpm": {
-    "compatibility": "^1.0.1",
+    "compatibility": "^1.7.1",
     "index": false
   }
 }
