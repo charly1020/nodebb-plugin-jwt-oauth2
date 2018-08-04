@@ -57,7 +57,7 @@
 
 				passportOAuth.Strategy.prototype.userProfile = function(token, secret, params, done) {
 					this._oauth.get(constants.userRoute, token, secret, function(err, body, res) {
-						if (err) { return done(new InternalOAuthError('failed to fetch user profile', err)); }
+						if (err) { return done(new Error('failed to fetch user profile', err)); }
 
 						try {
 							var json = JSON.parse(body);
@@ -79,8 +79,9 @@
 
 				passportOAuth.Strategy.prototype.userProfile = function(accessToken, done) {
 					const uid = OAuth.getUidFromToken(accessToken);
-					this._oauth2.get(constants.userRoute+uid, accessToken, function(err, body, res) {
-						if (err) { return done(new InternalOAuthError('failed to fetch user profile', err)); }
+					this._oauth2._request("GET", constants.userRoute, {Authorization:"Bearer "+accessToken}, "", accessToken, function(err, body, res) {
+					// this._oauth2.get(constants.userRoute+uid, accessToken, function(err, body, res) {
+						if (err) { return done(new Error('failed to fetch user profile', err)); }
 
 						try {
 							var json = JSON.parse(body);
