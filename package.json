@@ -1,11 +1,11 @@
 {
-  "name": "nodebb-plugin-jwt-oauth2",
-  "version": "0.3.5",
+  "name": "nodebb-plugin-matr-forum-oauth2",
+  "version": "0.3.7",
   "description": "NodeBB Plugin for OAuth2 with jwt tokens.",
   "main": "library.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/TimeZynk/nodebb-plugin-jwt-oauth2"
+    "url": "https://github.com/charly1020/nodebb-plugin-jwt-oauth2"
   },
   "keywords": [
     "nodebb",
@@ -18,12 +18,12 @@
     "registration"
   ],
   "author": {
-    "name": "TimeZynk dev",
-    "email": "info@timezynk.com"
+    "name": "Carlos Toranzo",
+    "email": "sofia@inosur.com"
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/TimeZynk/nodebb-plugin-jwt-oauth2/issues"
+    "url": "https://github.com/charly1020/nodebb-plugin-jwt-oauth2/issues"
   },
   "readme": "",
   "readmeFilename": "README.md",
